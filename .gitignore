@@ -1,0 +1,6 @@
+Dataset/*
+segment
+test.ipynb
+__pycache__
+requirements.txt
+.DS_Store

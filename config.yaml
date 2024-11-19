@@ -1,0 +1,103 @@
+# General settings
+project:
+  name: "Medical Imaging Project"
+  description: "Configuration for CT-Scan segmentation with Pytorch & MONAI."
+
+# Paths
+paths:
+  data_dir: "./Dataset/nifti_files"  
+  output_dir: "./out_data"              
+  model_dir: "./saved"  
+
+# Dataset settings
+dataset:
+  num_slices: 32
+  split_ratio:              # Ratios for splitting dataset
+    train: 0.8              # 80% for training
+    val: 0.15               # 15% for validation
+    test: 0.05              # 5% for testing
+  seed: 42                  # Seed for reproducibility
+
+# Data loader settings
+dataloader:
+  determinism_seed: 0
+  train_batch_size: 1
+  val_test_batch_size: 1
+  cache: True
+  num_workers: 4            # Number of parallel data loading workers
+  shuffle: true              # Shuffle training data
+
+# MONAI transforms settings
+transforms:
+  train:
+    - name: "LoadImaged"
+      params:
+    - name: "EnsureChannelFirstD"
+      params:
+    - name: "Spacingd"
+      params:
+        pixdim: [1.5, 1.5, 1.0]
+        mode: ["bilinear", "nearest"]
+    - name: "Orientationd"
+      params:
+        axcodes: "RAS"
+    - name: "ScaleIntensityRanged"
+      params:
+        a_min: -200
+        a_max: 200
+        b_min: 0.0
+        b_max: 1.0
+        clip: True
+    - name: "CropForegroundd"
+      params:
+    - name: "Resized"
+      params:
+        spatial_size: [128,128,32]
+  test:
+    - name: "LoadImaged"
+      params:
+    - name: "EnsureChannelFirstD"
+      params:
+    - name: "Spacingd"
+      params:
+        pixdim: [1.5, 1.5, 1.0]
+        mode: ["bilinear", "nearest"]
+    - name: "Orientationd"
+      params:
+        axcodes: "RAS"
+    - name: "ScaleIntensityRanged"
+      params:
+        a_min: -200
+        a_max: 200
+        b_min: 0.0
+        b_max: 1.0
+        clip: True
+    - name: "CropForegroundd"
+      params:
+    - name: "Resized"
+      params:
+        spatial_size: [128,128,32]
+
+# Model settings
+model:
+  name: "UNet"              # Name of the model (e.g., UNet, ResNet)
+  input_channels: 1         # Input channels for grayscale images
+  output_channels: 1        # Output channels for segmentation task
+  features: [16, 32, 64, 128, 256]  # Feature dimensions per layer in UNet
+
+# Training settings
+training:
+  epochs: 50                # Number of training epochs
+  learning_rate: 0.001      # Initial learning rate
+  optimizer: "Adam"         # Optimizer type (e.g., Adam, SGD)
+  loss_function: "DiceLoss" # Loss function (e.g., DiceLoss, CrossEntropyLoss)
+
+# Validation settings
+validation:
+  frequency: 5              # Validate every 5 epochs
+  metrics: ["DiceMetric", "HausdorffDistance"]  # Metrics to evaluate
+
+# Logging settings
+logging:
+  level: "INFO"             # Log level (e.g., DEBUG, INFO, WARNING)
+  save_interval: 10         # Interval (epochs) for saving model checkpoints
